@@ -25,16 +25,18 @@ import { RootStackScreenProps } from '@/types/navigation';
 
 type Props = RootStackScreenProps<'MotoForm'>;
 
+// Interface apenas com dados que o usuário preenche
 interface MotoFormData {
   placa: string;
   status: string;
   filialId: number;
+  // será obtido automaticamente do contexto de autenticação
 }
 
 export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
   const { mode, moto } = route.params;
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, getCurrentUserId, getCurrentUserEmail } = useAuth();
   const { showError, showSuccess } = useToast();
 
   const [formData, setFormData] = useState<MotoFormData>({
@@ -56,7 +58,6 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
       const data = await filialService.getAll(user?.token || '');
       setFiliais(data);
       
-      // Se não há filial selecionada e há filiais disponíveis, selecionar a primeira
       if (formData.filialId === 0 && data.length > 0) {
         setFormData(prev => ({ ...prev, filialId: data[0].id }));
       }
@@ -94,9 +95,17 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    // Obter userId do contexto de autenticação
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) {
+      showError('Erro: usuário não identificado. Faça login novamente.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const requestData: MotoRequest = {
+      // Criar objeto sem userId (será adicionado pelo service)
+      const motoDataWithoutUserId: Omit<MotoRequest, 'userId'> = {
         placa: formData.placa.toUpperCase(),
         status: formData.status,
         filialId: formData.filialId,
@@ -104,10 +113,12 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
       };
 
       if (mode === 'create') {
-        await motoService.create(requestData);
+        // Passar userId separadamente para o service
+        await motoService.create(motoDataWithoutUserId, currentUserId);
         showSuccess('Moto criada com sucesso!');
       } else {
-        await motoService.update(moto.id, requestData);
+        // Passar userId separadamente para o service
+        await motoService.update(moto.id, motoDataWithoutUserId, currentUserId);
         showSuccess('Moto atualizada com sucesso!');
       }
 
@@ -180,19 +191,39 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
               {mode === 'create' ? 'Cadastrar Nova Moto' : 'Editar Dados da Moto'}
             </Text>
 
+            {/* Informação do proprietário (automática) */}
+            <View style={styles.ownerInfoCard}>
+              <View style={styles.ownerInfoHeader}>
+                <Text style={[styles.ownerInfoLabel, { color: theme.colors.onSurfaceVariant }]}>
+                  📝 Proprietário (automático):
+                </Text>
+              </View>
+              <Text style={[styles.ownerInfoValue, { color: theme.colors.primary }]}>
+                {getCurrentUserEmail()}
+              </Text>
+              <Text style={[styles.ownerInfoNote, { color: theme.colors.onSurfaceVariant }]}>
+                Esta moto será cadastrada automaticamente em seu nome
+              </Text>
+            </View>
+
+            {/* APENAS CAMPOS QUE O USUÁRIO PREENCHE */}
+            
+            {/* Campo Placa */}
             <Input
-              label="Placa *"
+              label="Placa da Moto *"
               value={formData.placa}
               onChangeText={(value) => updateField('placa', value)}
               error={errors.placa}
               placeholder="ABC-1234"
               autoCapitalize="characters"
               maxLength={8}
+              leftIcon="car"
             />
 
+            {/* Campo Status */}
             <View style={styles.pickerContainer}>
               <Text style={[styles.pickerLabel, { color: theme.colors.onSurface }]}>
-                Status *
+                Status da Moto *
               </Text>
               <View
                 style={[
@@ -220,9 +251,10 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
             </View>
 
+            {/* Campo Filial */}
             <View style={styles.pickerContainer}>
               <Text style={[styles.pickerLabel, { color: theme.colors.onSurface }]}>
-                Filial *
+                Filial de Cadastro *
               </Text>
               <View
                 style={[
@@ -250,6 +282,13 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               )}
             </View>
+
+            {/* Nota informativa */}
+            <View style={styles.infoNote}>
+              <Text style={[styles.infoNoteText, { color: theme.colors.onSurfaceVariant }]}>
+                💡 Apenas preencha os dados da moto. Seu ID de usuário será enviado automaticamente para o sistema.
+              </Text>
+            </View>
           </Card>
 
           <View style={styles.buttonContainer}>
@@ -260,7 +299,7 @@ export const MotoFormScreen: React.FC<Props> = ({ navigation, route }) => {
               style={[styles.button, styles.cancelButton]}
             />
             <Button
-              title={mode === 'create' ? 'Criar Moto' : 'Salvar Alterações'}
+              title={mode === 'create' ? 'Cadastrar Moto' : 'Salvar Alterações'}
               onPress={handleSubmit}
               loading={loading}
               style={[styles.button, styles.submitButton]}
@@ -294,6 +333,35 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
+  
+  // Estilos para card de informações do proprietário
+  ownerInfoCard: {
+    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(33, 150, 243, 0.2)',
+  },
+  ownerInfoHeader: {
+    marginBottom: 8,
+  },
+  ownerInfoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  ownerInfoValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  ownerInfoNote: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    lineHeight: 16,
+  },
+
+  // Estilos dos campos do formulário
   pickerContainer: {
     marginBottom: 16,
   },
@@ -313,6 +381,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
+
+  // Nota informativa
+  infoNote: {
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.2)',
+  },
+  infoNoteText: {
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+  },
+
+  // Botões
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

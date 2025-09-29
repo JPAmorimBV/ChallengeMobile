@@ -15,10 +15,13 @@ type AuthAction =
   | { type: 'LOGOUT' }
   | { type: 'RESTORE_TOKEN'; payload: AuthResponse | null };
 
+
 interface AuthContextType extends AuthState {
   login: (credentials: AuthRequest) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: any) => Promise<void>;
+  getCurrentUserId: () => number | null; 
+  getCurrentUserEmail: () => string | null; 
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -115,6 +118,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const getCurrentUserId = (): number | null => {
+    return state.user?.userId || null;
+  };
+
+  const getCurrentUserEmail = (): string | null => {
+    return state.user?.userEmail || null;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -122,6 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         logout,
         register,
+        getCurrentUserId, 
+        getCurrentUserEmail, 
       }}
     >
       {children}

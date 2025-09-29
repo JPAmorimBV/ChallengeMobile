@@ -1,4 +1,5 @@
 import { VALIDATION_REGEX } from '@/constants/app';
+import { MotoFormRequest } from '@/types/api';
 
 export class ValidationUtils {
   /**
@@ -92,9 +93,9 @@ export class ValidationUtils {
   }
 
   /**
-   * Valida objeto de moto
+   * ATUALIZADO: Valida objeto de moto sem userId (formulário)
    */
-  static validateMoto(moto: any): { isValid: boolean; errors: string[] } {
+  static validateMotoForm(moto: any): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!moto.placa || !this.isValidPlaca(moto.placa)) {
@@ -112,6 +113,22 @@ export class ValidationUtils {
     return {
       isValid: errors.length === 0,
       errors,
+    };
+  }
+
+  /**
+   * MANTIDO: Valida objeto de moto completo (para compatibilidade)
+   */
+  static validateMoto(moto: any): { isValid: boolean; errors: string[] } {
+    const formValidation = this.validateMotoForm(moto);
+    
+    if (!moto.userId || !this.isValidId(moto.userId)) {
+      formValidation.errors.push('ID do usuário é obrigatório');
+    }
+
+    return {
+      isValid: formValidation.errors.length === 0,
+      errors: formValidation.errors,
     };
   }
 

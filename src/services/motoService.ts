@@ -10,6 +10,7 @@ class MotoService {
     base: '/motos',
     getAll: '/motos',
     getById: (id: number) => `/motos/${id}`,
+    getByUser: (userId: number) => `/motos/user/${userId}`,
     create: '/motos',
     update: (id: number) => `/motos/${id}`,
     delete: (id: number) => `/motos/${id}`,
@@ -34,6 +35,24 @@ class MotoService {
   }
 
   /**
+   * Busca motos por usuário
+   */
+  async getByUser(userId: number, token: string): Promise<MotoResponse[]> {
+    try {
+      const response = await apiService.requestWithToken<MotoResponse[]>(
+        'GET',
+        this.endpoints.getByUser(userId),
+        token
+      );
+
+      return response;
+    } catch (error: any) {
+      console.error(`Erro ao buscar motos do usuário ${userId}:`, error);
+      throw new Error(error.message || 'Erro ao carregar suas motos');
+    }
+  }
+
+  /**
    * Busca uma moto por ID
    */
   async getById(id: number, token: string): Promise<MotoResponse> {
@@ -52,22 +71,35 @@ class MotoService {
   }
 
   /**
-   * Cria uma nova moto
+   * Cria uma nova moto 
    */
-  async create(motoData: MotoRequest): Promise<MotoResponse> {
+  async create(
+    motoData: Omit<MotoRequest, 'userId'>, // Remove userId do tipo obrigatório
+    userId: number // Passa userId separadamente
+  ): Promise<MotoResponse> {
     try {
-      // Validação dos dados antes do envio
-      this.validateMotoData(motoData);
+      // Validação dos dados antes do envio (sem userId)
+      this.validateMotoDataWithoutUserId(motoData);
+
+      // Verifica se userId é válido
+      if (!userId || userId <= 0) {
+        throw new Error('ID do usuário é obrigatório para cadastrar moto');
+      }
+
+      const requestPayload = {
+        placa: motoData.placa.toUpperCase(),
+        status: motoData.status,
+        filialId: motoData.filialId,
+        userId: userId, // Adicionado automaticamente pelo service
+      };
+
+      console.log('🚀 Enviando dados da moto:', requestPayload);
 
       const response = await apiService.requestWithToken<MotoResponse>(
         'POST',
         this.endpoints.create,
         motoData.token,
-        {
-          placa: motoData.placa.toUpperCase(),
-          status: motoData.status,
-          filialId: motoData.filialId,
-        }
+        requestPayload
       );
 
       return response;
@@ -83,22 +115,36 @@ class MotoService {
   }
 
   /**
-   * Atualiza uma moto existente
+   * Atualiza uma moto existente - 
    */
-  async update(id: number, motoData: MotoRequest): Promise<MotoResponse> {
+  async update(
+    id: number,
+    motoData: Omit<MotoRequest, 'userId'>, 
+    userId: number 
+  ): Promise<MotoResponse> {
     try {
-      // Validação dos dados antes do envio
-      this.validateMotoData(motoData);
+      // Validação dos dados antes do envio (sem userId)
+      this.validateMotoDataWithoutUserId(motoData);
+
+      // Verifica se userId é válido
+      if (!userId || userId <= 0) {
+        throw new Error('ID do usuário é obrigatório para atualizar moto');
+      }
+
+      const requestPayload = {
+        placa: motoData.placa.toUpperCase(),
+        status: motoData.status,
+        filialId: motoData.filialId,
+        userId: userId, // Adicionado automaticamente pelo service
+      };
+
+      console.log('🚀 Atualizando dados da moto:', requestPayload);
 
       const response = await apiService.requestWithToken<MotoResponse>(
         'PUT',
         this.endpoints.update(id),
         motoData.token,
-        {
-          placa: motoData.placa.toUpperCase(),
-          status: motoData.status,
-          filialId: motoData.filialId,
-        }
+        requestPayload
       );
 
       return response;
@@ -107,6 +153,10 @@ class MotoService {
       
       if (error.message.includes('404')) {
         throw new Error('Moto não encontrada');
+      }
+      
+      if (error.message.includes('403')) {
+        throw new Error('Você não tem permissão para editar esta moto');
       }
       
       if (error.message.includes('422')) {
@@ -132,6 +182,10 @@ class MotoService {
       
       if (error.message.includes('404')) {
         throw new Error('Moto não encontrada');
+      }
+
+      if (error.message.includes('403')) {
+        throw new Error('Você não tem permissão para excluir esta moto');
       }
       
       throw new Error(error.message || 'Erro ao excluir moto');
@@ -168,9 +222,9 @@ class MotoService {
   }
 
   /**
-   * Validação de dados da moto
+   * Validação de dados da moto SEM userId 
    */
-  private validateMotoData(motoData: MotoRequest): void {
+  private validateMotoDataWithoutUserId(motoData: Omit<MotoRequest, 'userId'>): void {
     if (!motoData.placa || !motoData.placa.trim()) {
       throw new Error('Placa é obrigatória');
     }
@@ -191,6 +245,15 @@ class MotoService {
 
     if (!motoData.token || !motoData.token.trim()) {
       throw new Error('Token de autenticação é obrigatório');
+    }
+  }
+
+  
+  private validateMotoData(motoData: MotoRequest): void {
+    this.validateMotoDataWithoutUserId(motoData);
+
+    if (!motoData.userId || motoData.userId <= 0) {
+      throw new Error('Usuário é obrigatório');
     }
   }
 }

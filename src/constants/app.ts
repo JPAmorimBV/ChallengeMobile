@@ -49,6 +49,9 @@ export const ERROR_MESSAGES = {
   VALIDATION: 'Dados inválidos. Verifique os campos.',
   SERVER: 'Erro interno do servidor. Tente novamente mais tarde.',
   UNKNOWN: 'Ocorreu um erro inesperado.',
+  MOTO_NOT_OWNER: 'Você não tem permissão para editar esta moto.',
+  MOTO_USER_REQUIRED: 'ID do usuário é obrigatório para cadastrar moto.',
+  USER_NOT_IDENTIFIED: 'Usuário não identificado. Faça login novamente.', // NOVO
 } as const;
 
 // Mensagens de sucesso
@@ -56,12 +59,19 @@ export const SUCCESS_MESSAGES = {
   LOGIN: 'Login realizado com sucesso!',
   REGISTER: 'Conta criada com sucesso!',
   LOGOUT: 'Logout realizado com sucesso!',
-  MOTO_CREATED: 'Moto criada com sucesso!',
+  MOTO_CREATED: 'Moto cadastrada com sucesso!', // ATUALIZADO
   MOTO_UPDATED: 'Moto atualizada com sucesso!',
   MOTO_DELETED: 'Moto excluída com sucesso!',
   FILIAL_CREATED: 'Filial criada com sucesso!',
   FILIAL_UPDATED: 'Filial atualizada com sucesso!',
   FILIAL_DELETED: 'Filial excluída com sucesso!',
+} as const;
+
+// NOVAS: Mensagens de informação para usuário
+export const INFO_MESSAGES = {
+  MOTO_AUTO_OWNER: 'Esta moto será cadastrada automaticamente em seu nome',
+  MOTO_FORM_SIMPLE: 'Apenas preencha os dados da moto. Seu ID será enviado automaticamente.',
+  MOTO_OWNER_AUTOMATIC: 'Proprietário definido automaticamente pelo sistema',
 } as const;
 
 // Configurações de paginação
