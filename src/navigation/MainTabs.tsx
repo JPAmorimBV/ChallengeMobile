@@ -2,15 +2,18 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { DashboardScreen } from '@/screens/dashboard/DashboardScreen';
 import { MotosScreen } from '@/screens/motos/MotosScreen';
 import { FiliaisScreen } from '@/screens/filiais/FiliaisScreen';
+import { SettingsScreen } from '@/screens/settings/SettingsScreen';
 import { MainTabParamList } from '@/types/navigation';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabs: React.FC = () => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -29,6 +32,9 @@ export const MainTabs: React.FC = () => {
               break;
             case 'Filiais':
               iconName = focused ? 'business' : 'business-outline';
+              break;
+            case 'Settings':
+              iconName = focused ? 'settings' : 'settings-outline';
               break;
             default:
               iconName = 'help-outline';
@@ -64,24 +70,28 @@ export const MainTabs: React.FC = () => {
         name="Dashboard"
         component={DashboardScreen}
         options={{
-          title: 'Início',
-          tabBarBadge: undefined,
+          title: t('dashboard.title'),
         }}
       />
       <Tab.Screen
         name="Motos"
         component={MotosScreen}
         options={{
-          title: 'Motos',
-          tabBarBadge: undefined,
+          title: t('motos.title'),
         }}
       />
       <Tab.Screen
         name="Filiais"
         component={FiliaisScreen}
         options={{
-          title: 'Filiais',
-          tabBarBadge: undefined,
+          title: t('filiais.title'),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: t('settings.title'),
         }}
       />
     </Tab.Navigator>

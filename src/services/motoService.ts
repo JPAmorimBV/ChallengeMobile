@@ -1,4 +1,5 @@
 import { apiService } from './api';
+import { notificationService } from './notificationService';
 import {
   MotoRequest,
   MotoResponse,
@@ -16,9 +17,6 @@ class MotoService {
     delete: (id: number) => `/motos/${id}`,
   };
 
-  /**
-   * Busca todas as motos
-   */
   async getAll(token: string): Promise<MotoResponse[]> {
     try {
       const response = await apiService.requestWithToken<MotoResponse[]>(
@@ -26,7 +24,6 @@ class MotoService {
         this.endpoints.getAll,
         token
       );
-
       return response;
     } catch (error: any) {
       console.error('Erro ao buscar motos:', error);
@@ -34,9 +31,6 @@ class MotoService {
     }
   }
 
-  /**
-   * Busca motos por usuário
-   */
   async getByUser(userId: number, token: string): Promise<MotoResponse[]> {
     try {
       const response = await apiService.requestWithToken<MotoResponse[]>(
@@ -44,7 +38,6 @@ class MotoService {
         this.endpoints.getByUser(userId),
         token
       );
-
       return response;
     } catch (error: any) {
       console.error(`Erro ao buscar motos do usuário ${userId}:`, error);
@@ -52,9 +45,6 @@ class MotoService {
     }
   }
 
-  /**
-   * Busca uma moto por ID
-   */
   async getById(id: number, token: string): Promise<MotoResponse> {
     try {
       const response = await apiService.requestWithToken<MotoResponse>(
@@ -62,7 +52,6 @@ class MotoService {
         this.endpoints.getById(id),
         token
       );
-
       return response;
     } catch (error: any) {
       console.error(`Erro ao buscar moto ${id}:`, error);
@@ -70,37 +59,24 @@ class MotoService {
     }
   }
 
-  /**
-   * Cria uma nova moto 
-   */
-  async create(
-    motoData: Omit<MotoRequest, 'userId'>, // Remove userId do tipo obrigatório
-    userId: number // Passa userId separadamente
-  ): Promise<MotoResponse> {
+  async create(motoData: MotoRequest): Promise<MotoResponse> {
     try {
-      // Validação dos dados antes do envio (sem userId)
-      this.validateMotoDataWithoutUserId(motoData);
-
-      // Verifica se userId é válido
-      if (!userId || userId <= 0) {
-        throw new Error('ID do usuário é obrigatório para cadastrar moto');
-      }
-
-      const requestPayload = {
-        placa: motoData.placa.toUpperCase(),
-        status: motoData.status,
-        filialId: motoData.filialId,
-        userId: userId, // Adicionado automaticamente pelo service
-      };
-
-      console.log('🚀 Enviando dados da moto:', requestPayload);
+      this.validateMotoData(motoData);
 
       const response = await apiService.requestWithToken<MotoResponse>(
         'POST',
         this.endpoints.create,
         motoData.token,
-        requestPayload
+        {
+          placa: motoData.placa.toUpperCase(),
+          status: motoData.status,
+          filialId: motoData.filialId,
+          userId: motoData.userId,
+        }
       );
+
+      // Enviar notificação de sucesso
+      await notificationService.notifyMotoCreated(response.placa);
 
       return response;
     } catch (error: any) {
@@ -114,38 +90,24 @@ class MotoService {
     }
   }
 
-  /**
-   * Atualiza uma moto existente - 
-   */
-  async update(
-    id: number,
-    motoData: Omit<MotoRequest, 'userId'>, 
-    userId: number 
-  ): Promise<MotoResponse> {
+  async update(id: number, motoData: MotoRequest): Promise<MotoResponse> {
     try {
-      // Validação dos dados antes do envio (sem userId)
-      this.validateMotoDataWithoutUserId(motoData);
-
-      // Verifica se userId é válido
-      if (!userId || userId <= 0) {
-        throw new Error('ID do usuário é obrigatório para atualizar moto');
-      }
-
-      const requestPayload = {
-        placa: motoData.placa.toUpperCase(),
-        status: motoData.status,
-        filialId: motoData.filialId,
-        userId: userId, // Adicionado automaticamente pelo service
-      };
-
-      console.log('🚀 Atualizando dados da moto:', requestPayload);
+      this.validateMotoData(motoData);
 
       const response = await apiService.requestWithToken<MotoResponse>(
         'PUT',
         this.endpoints.update(id),
         motoData.token,
-        requestPayload
+        {
+          placa: motoData.placa.toUpperCase(),
+          status: motoData.status,
+          filialId: motoData.filialId,
+          userId: motoData.userId,
+        }
       );
+
+      // Enviar notificação de atualização
+      await notificationService.notifyMotoUpdated(response.placa);
 
       return response;
     } catch (error: any) {
@@ -167,16 +129,18 @@ class MotoService {
     }
   }
 
-  /**
-   * Deleta uma moto
-   */
-  async delete(id: number, token: string): Promise<void> {
+  async delete(id: number, token: string, placa?: string): Promise<void> {
     try {
       await apiService.requestWithToken<void>(
         'DELETE',
         this.endpoints.delete(id),
         token
       );
+
+      // Enviar notificação de exclusão
+      if (placa) {
+        await notificationService.notifyMotoDeleted(placa);
+      }
     } catch (error: any) {
       console.error(`Erro ao deletar moto ${id}:`, error);
       
@@ -192,9 +156,6 @@ class MotoService {
     }
   }
 
-  /**
-   * Busca motos por filial
-   */
   async getByFilial(filialId: number, token: string): Promise<MotoResponse[]> {
     try {
       const allMotos = await this.getAll(token);
@@ -208,9 +169,6 @@ class MotoService {
     }
   }
 
-  /**
-   * Busca motos por status
-   */
   async getByStatus(status: string, token: string): Promise<MotoResponse[]> {
     try {
       const allMotos = await this.getAll(token);
@@ -221,15 +179,11 @@ class MotoService {
     }
   }
 
-  /**
-   * Validação de dados da moto SEM userId 
-   */
-  private validateMotoDataWithoutUserId(motoData: Omit<MotoRequest, 'userId'>): void {
+  private validateMotoData(motoData: MotoRequest): void {
     if (!motoData.placa || !motoData.placa.trim()) {
       throw new Error('Placa é obrigatória');
     }
 
-    // Validação do formato da placa brasileira
     const placaRegex = /^[A-Z]{3}-\d{4}$/;
     if (!placaRegex.test(motoData.placa.toUpperCase())) {
       throw new Error('Placa deve estar no formato ABC-1234');
@@ -243,17 +197,12 @@ class MotoService {
       throw new Error('Filial é obrigatória');
     }
 
+    if (!motoData.userId || motoData.userId <= 0) {
+      throw new Error('ID do usuário é obrigatório');
+    }
+
     if (!motoData.token || !motoData.token.trim()) {
       throw new Error('Token de autenticação é obrigatório');
-    }
-  }
-
-  
-  private validateMotoData(motoData: MotoRequest): void {
-    this.validateMotoDataWithoutUserId(motoData);
-
-    if (!motoData.userId || motoData.userId <= 0) {
-      throw new Error('Usuário é obrigatório');
     }
   }
 }

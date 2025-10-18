@@ -6,9 +6,11 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -23,24 +25,34 @@ import { CompositeMainTabScreenProps } from '@/types/navigation';
 type Props = CompositeMainTabScreenProps<'Motos'>;
 
 export const MotosScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, getCurrentUserId } = useAuth();
   const { showError, showSuccess } = useToast();
   const [motos, setMotos] = useState<MotoResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<string>('Todos');
+  const [filter, setFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'all' | 'mine'>('all');
 
   useEffect(() => {
     loadMotos();
-  }, []);
+  }, [viewMode]);
 
   const loadMotos = async () => {
     try {
-      const data = await motoService.getAll(user?.token || '');
+      const currentUserId = getCurrentUserId();
+      
+      let data: MotoResponse[];
+      if (viewMode === 'mine' && currentUserId) {
+        data = await motoService.getByUser(currentUserId, user?.token || '');
+      } else {
+        data = await motoService.getAll(user?.token || '');
+      }
+      
       setMotos(data);
     } catch (error: any) {
-      showError(error.message || 'Erro ao carregar motos');
+      showError(error.message || t('errors.unknown'));
     } finally {
       setLoading(false);
     }
@@ -52,18 +64,31 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await motoService.delete(id, user?.token || '');
-      setMotos(motos.filter(moto => moto.id !== id));
-      showSuccess('Moto excluída com sucesso!');
-    } catch (error: any) {
-      showError(error.message || 'Erro ao excluir moto');
-    }
+  const handleDelete = async (moto: MotoResponse) => {
+    Alert.alert(
+      t('motos.deleteConfirm'),
+      `${t('motos.plate')}: ${moto.placa}`,
+      [
+        { text: t('common.no'), style: 'cancel' },
+        {
+          text: t('common.yes'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await motoService.delete(moto.id, user?.token || '', moto.placa);
+              setMotos(motos.filter(m => m.id !== moto.id));
+              showSuccess(t('motos.deleteSuccess'));
+            } catch (error: any) {
+              showError(error.message || t('errors.unknown'));
+            }
+          },
+        },
+      ]
+    );
   };
 
   const filteredMotos = motos.filter(moto => {
-    if (filter === 'Todos') return true;
+    if (filter === 'all') return true;
     return moto.status === filter;
   });
 
@@ -80,6 +105,11 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const canEditMoto = (moto: MotoResponse): boolean => {
+    const currentUserId = getCurrentUserId();
+    return currentUserId === moto.userId;
+  };
+
   const renderMotoItem = ({ item }: { item: MotoResponse }) => (
     <Card style={styles.motoCard}>
       <View style={styles.motoHeader}>
@@ -90,6 +120,16 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={[styles.motoFilial, { color: theme.colors.onSurfaceVariant }]}>
             {item.nomeFilial}
           </Text>
+          {!canEditMoto(item) && item.userEmail && (
+            <Text style={[styles.motoOwner, { color: theme.colors.primary }]}>
+              {t('motos.owner')}: {item.userEmail}
+            </Text>
+          )}
+          {canEditMoto(item) && (
+            <Text style={[styles.motoOwner, { color: theme.colors.success }]}>
+              {t('motos.yourMoto')}
+            </Text>
+          )}
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
           <Text style={styles.statusText}>{item.status}</Text>
@@ -97,40 +137,95 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
       </View>
       
       <View style={styles.motoActions}>
-        <Button
-          title="Editar"
-          variant="outline"
-          size="small"
-          onPress={() => navigation.navigate('MotoForm', { 
-            moto: item, 
-            mode: 'edit' 
-          })}
-          style={styles.actionButton}
-        />
-        <Button
-          title="Excluir"
-          variant="danger"
-          size="small"
-          onPress={() => handleDelete(item.id)}
-          style={styles.actionButton}
-        />
+        {canEditMoto(item) ? (
+          <>
+            <Button
+              title={t('common.edit')}
+              variant="outline"
+              size="small"
+              onPress={() => navigation.navigate('MotoForm', { 
+                moto: item, 
+                mode: 'edit' 
+              })}
+              style={styles.actionButton}
+            />
+            <Button
+              title={t('common.delete')}
+              variant="danger"
+              size="small"
+              onPress={() => handleDelete(item)}
+              style={styles.actionButton}
+            />
+          </>
+        ) : (
+          <Text style={[styles.cannotEditText, { color: theme.colors.onSurfaceVariant }]}>
+            {t('motos.onlyOwnerCanEdit')}
+          </Text>
+        )}
       </View>
     </Card>
   );
 
   if (loading) {
-    return <LoadingSpinner text="Carregando motos..." />;
+    return <LoadingSpinner text={t('common.loading')} />;
   }
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <Header title="Gestão de Motos" />
+      <Header title={t('motos.title')} />
       
+      {/* View Toggle */}
+      <View style={styles.viewToggleContainer}>
+        <TouchableOpacity
+          style={[
+            styles.viewToggleButton,
+            {
+              backgroundColor: viewMode === 'all' ? theme.colors.primary : theme.colors.surface,
+              borderColor: theme.colors.outline,
+            }
+          ]}
+          onPress={() => setViewMode('all')}
+        >
+          <Text
+            style={[
+              styles.viewToggleText,
+              {
+                color: viewMode === 'all' ? theme.colors.onPrimary : theme.colors.onSurface,
+              }
+            ]}
+          >
+            {t('motos.allMotos')}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.viewToggleButton,
+            {
+              backgroundColor: viewMode === 'mine' ? theme.colors.primary : theme.colors.surface,
+              borderColor: theme.colors.outline,
+            }
+          ]}
+          onPress={() => setViewMode('mine')}
+        >
+          <Text
+            style={[
+              styles.viewToggleText,
+              {
+                color: viewMode === 'mine' ? theme.colors.onPrimary : theme.colors.onSurface,
+              }
+            ]}
+          >
+            {t('motos.myMotos')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Filter Buttons */}
       <View style={styles.filterContainer}>
-        {['Todos', 'Disponível', 'Em uso', 'Manutenção'].map(status => (
+        {['all', 'Disponível', 'Em uso', 'Manutenção'].map(status => (
           <TouchableOpacity
             key={status}
             style={[
@@ -154,7 +249,7 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
                 }
               ]}
             >
-              {status}
+              {status === 'all' ? t('common.all') : status}
             </Text>
           </TouchableOpacity>
         ))}
@@ -163,7 +258,7 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
       {/* Add Button */}
       <View style={styles.addButtonContainer}>
         <Button
-          title="Adicionar Nova Moto"
+          title={t('motos.addNew')}
           onPress={() => navigation.navigate('MotoForm', { mode: 'create' })}
           leftIcon="add"
         />
@@ -187,7 +282,9 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
               color={theme.colors.onSurfaceVariant}
             />
             <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-              Nenhuma moto encontrada
+              {viewMode === 'mine' 
+                ? t('motos.noYourMotos')
+                : t('motos.noMotosFound')}
             </Text>
           </View>
         }
@@ -197,8 +294,24 @@ export const MotosScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1 },
+  viewToggleContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  viewToggleButton: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  viewToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -222,24 +335,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-  },
-  motoCard: {
-    marginBottom: 12,
-  },
+  list: { flex: 1 },
+  listContent: { padding: 16 },
+  motoCard: { marginBottom: 12 },
   motoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  motoInfo: {
-    flex: 1,
-  },
+  motoInfo: { flex: 1 },
   motoPlaca: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -247,6 +352,11 @@ const styles = StyleSheet.create({
   },
   motoFilial: {
     fontSize: 14,
+    marginBottom: 4,
+  },
+  motoOwner: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -261,9 +371,12 @@ const styles = StyleSheet.create({
   motoActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    alignItems: 'center',
   },
-  actionButton: {
-    marginLeft: 8,
+  actionButton: { marginLeft: 8 },
+  cannotEditText: {
+    fontSize: 12,
+    fontStyle: 'italic',
   },
   emptyContainer: {
     flex: 1,

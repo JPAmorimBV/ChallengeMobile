@@ -7,6 +7,7 @@ import { AuthStack } from './AuthStack';
 import { MainTabs } from './MainTabs';
 import { MotoFormScreen } from '@/screens/forms/MotoFormScreen';
 import { FilialFormScreen } from '@/screens/forms/FilialFormScreen';
+import { AboutScreen } from '@/screens/about/AboutScreen';
 import { RootStackParamList } from '@/types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -15,7 +16,6 @@ export const RootStack: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const { theme } = useTheme();
 
-  // Mostra loading enquanto verifica autenticação
   if (isLoading) {
     return <LoadingSpinner text="Verificando autenticação..." />;
   }
@@ -32,7 +32,6 @@ export const RootStack: React.FC = () => {
       }}
     >
       {!isAuthenticated ? (
-        // Stack de autenticação (Login/Register)
         <Stack.Screen
           name="AuthStack"
           component={AuthStack}
@@ -41,17 +40,15 @@ export const RootStack: React.FC = () => {
           }}
         />
       ) : (
-        // Stack principal autenticado
         <Stack.Group>
           <Stack.Screen
             name="MainTabs"
             component={MainTabs}
             options={{
-              gestureEnabled: false, // Desabilita gesto para não sair acidentalmente
+              gestureEnabled: false,
             }}
           />
           
-          {/* Modais e telas de formulário */}
           <Stack.Group screenOptions={{ presentation: 'modal' }}>
             <Stack.Screen
               name="MotoForm"
@@ -67,6 +64,14 @@ export const RootStack: React.FC = () => {
               options={{
                 title: 'Filial',
                 animation: 'slide_from_bottom',
+              }}
+            />
+            <Stack.Screen
+              name="About"
+              component={AboutScreen}
+              options={{
+                title: 'Sobre',
+                animation: 'slide_from_right',
               }}
             />
           </Stack.Group>
