@@ -153,8 +153,8 @@ Sistema móvel profissional para gerenciamento de frotas de motocicletas e filia
 ├── tsconfig.json 
 ├── babel.config.js 
 ├── metro.config.js 
-└── README.md ```
-
+└── README.md 
+```
 ### Descrição da Estrutura
 
 - **`components/`**: Componentes reutilizáveis divididos por tipo (common, forms, ui)
