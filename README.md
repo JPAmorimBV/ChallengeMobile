@@ -82,19 +82,19 @@ Sistema móvel profissional para gerenciamento de frotas de motocicletas e filia
 ## 📂 Estrutura de Pastas
 ```
 ├── src/
-│ ├── components/ 
-│ │ ├── common/
-│ │ │ ├── Header.tsx 
+│ ├── components/
+│ │ ├── common/ 
+│ │ │ ├── Header.tsx
 │ │ │ ├── LoadingSpinner.tsx
-│ │ │ ├── Toast.tsx 
+│ │ │ ├── Toast.tsx
 │ │ │ └── ErrorBoundary.tsx
 │ │ ├── forms/ 
 │ │ │ ├── LoginForm.tsx
 │ │ │ └── RegisterForm.tsx
 │ │ └── ui/ 
-│ │ ├── Button.tsx 
+│ │ ├── Button.tsx
 │ │ ├── Card.tsx
-│ │ └── Input.tsx 
+│ │ └── Input.tsx
 │ │
 │ ├── screens/ 
 │ │ ├── auth/ 
@@ -106,54 +106,66 @@ Sistema móvel profissional para gerenciamento de frotas de motocicletas e filia
 │ │ │ └── MotosScreen.tsx
 │ │ ├── filiais/ 
 │ │ │ └── FiliaisScreen.tsx
-│ │ └── forms/ 
-│ │ ├── MotoFormScreen.tsx
-│ │ └── FilialFormScreen.tsx
+│ │ ├── forms/ 
+│ │ │ ├── MotoFormScreen.tsx
+│ │ │ └── FilialFormScreen.tsx
+│ │ ├── settings/ 
+│ │ │ └── SettingsScreen.tsx
+│ │ └── about/ 
+│ │ └── AboutScreen.tsx
 │ │
 │ ├── navigation/ 
-│ │ ├── AuthStack.tsx 
-│ │ ├── MainTabs.tsx 
-│ │ ├── RootStack.tsx 
+│ │ ├── AuthStack.tsx
+│ │ ├── MainTabs.tsx
+│ │ ├── RootStack.tsx
 │ │ ├── NavigationContainer.tsx
-│ │ ├── navigationUtils.ts 
-│ │ └── linking.ts 
+│ │ ├── navigationUtils.ts
+│ │ └── linking.ts
 │ │
-│ ├── contexts/ # Contextos React (Estado global)
-│ │ ├── AuthContext.tsx 
-│ │ ├── ThemeContext.tsx 
-│ │ └── ToastContext.tsx 
+│ ├── contexts/ 
+│ │ ├── AuthContext.tsx
+│ │ ├── ThemeContext.tsx
+│ │ ├── ToastContext.tsx
+│ │ ├── LanguageContext.tsx 
+│ │ └── NotificationContext.tsx 
 │ │
 │ ├── services/ 
-│ │ ├── api.ts 
-│ │ ├── authService.ts 
+│ │ ├── api.ts
+│ │ ├── authService.ts
 │ │ ├── motoService.ts
-│ │ ├── filialService.ts 
-│ │ └── index.ts 
+│ │ ├── filialService.ts
+│ │ ├── notificationService.ts 
+│ │ └── index.ts
+│ │
+│ ├── i18n/ 
+│ │ ├── locales/
+│ │ │ ├── pt.json 
+│ │ │ └── es.json 
+│ │ └── index.ts
 │ │
 │ ├── types/ 
-│ │ ├── api.ts 
-│ │ ├── theme.ts 
-│ │ ├── index.ts 
-│ │ └── navigation.ts 
+│ │ ├── api.ts
+│ │ ├── theme.ts
+│ │ └── navigation.ts
 │ │
 │ ├── utils/ 
-│ │ ├── validation.ts 
-│ │ ├── format.ts 
-│ │ ├── index.ts 
+│ │ ├── validation.ts
+│ │ ├── format.ts
 │ │ └── storage.ts
 │ │
-│ └── constants/
+│ └── constants/ 
 │ ├── api.ts
-│ ├── storage.ts 
-│ └── app.ts 
+│ ├── storage.ts
+│ └── app.ts
 │
-├── App.tsx
-├── app.json
-├── package.json 
-├── tsconfig.json 
-├── babel.config.js 
-├── metro.config.js 
-└── README.md 
+├── scripts/
+│ └── get-commit-hash.js 
+│
+├── App.tsx 
+├── app.json 
+├── eas.json 
+├── firebase.json 
+└── .firebaserc  
 ```
 ### Descrição da Estrutura
 
