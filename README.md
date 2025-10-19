@@ -19,6 +19,39 @@ Sistema móvel profissional para gerenciamento de frotas de motocicletas e filia
 
 ### Funcionalidades Principais
 
+#### ✅ **Push Notifications**
+- Notificações automáticas ao criar moto
+- Notificações ao atualizar moto
+- Notificações ao excluir moto
+- Suporte para notificações em background
+- Token Expo Push integrado
+- Configuração Android/iOS completa
+
+#### ✅ **Internacionalização (i18n)**
+- 🇧🇷 Português (Brasil) - idioma padrão
+- 🇪🇸 Español - tradução completa
+- Detecção automática do idioma do dispositivo
+- Troca de idioma em tempo real
+- Todas as telas traduzidas
+- Persistência da escolha do usuário
+
+#### ✅ **Tela "Sobre o App"**
+- Versão do aplicativo
+- Build number
+- Hash do commit Git (gerado automaticamente)
+- Informações da equipe de desenvolvimento
+- Tecnologias utilizadas
+- Links para GitHub dos desenvolvedores
+- Opção de copiar commit hash
+
+#### ✅ **Firebase App Distribution**
+- Configuração completa para distribuição
+- Scripts de build automatizados
+- Suporte para testers
+- APK/IPA para testes
+- Documentação de deploy
+
+
 #### ✅ **Sistema de Autenticação JWT**
 - Login seguro com email e senha
 - Cadastro de novos usuários com role ADMIN
@@ -167,16 +200,6 @@ Sistema móvel profissional para gerenciamento de frotas de motocicletas e filia
 ├── firebase.json 
 └── .firebaserc  
 ```
-### Descrição da Estrutura
-
-- **`components/`**: Componentes reutilizáveis divididos por tipo (common, forms, ui)
-- **`screens/`**: Telas principais organizadas por funcionalidade
-- **`navigation/`**: Sistema de navegação com stacks e tabs
-- **`contexts/`**: Gerenciamento de estado global com Context API
-- **`services/`**: Camada de integração com APIs externas
-- **`types/`**: Definições de tipos TypeScript para type safety
-- **`utils/`**: Funções auxiliares e utilitários reutilizáveis
-- **`constants/`**: Valores constantes e configurações centralizadas
 
 ---
 
