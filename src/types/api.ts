@@ -1,65 +1,3 @@
-// Tipos para autenticação
-export interface AuthRequest {
-  email: string;
-  senha: string;
-}
-
-export interface AuthResponse {
-  userEmail: string;
-  token: string;
-}
-
-// Tipos para Filiais
-export interface FilialRequest {
-  nome: string;
-  endereco: string;
-  token: string; 
-}
-
-export interface FilialResponse {
-  id: number;
-  name: string;
-  endereco: string;
-  motos: MotoResponse[];
-}
-
-// Tipos para Motos
-export interface MotoRequest {
-  placa: string;
-  status: string;
-  filialId: number;
-  token: string; 
-}
-
-export interface MotoResponse {
-  id: number;
-  placa: string;
-  status: string;
-  nomeFilial: string;
-}
-
-// Tipos para cadastro de usuário
-export interface RegisterRequest {
-  nome: string;
-  email: string;
-  senha: string;
-}
-
-// Tipos de resposta de erro da API
-export interface ApiError {
-  message: string;
-  code: string;
-  details?: any;
-}
-
-// Tipo genérico para respostas da API
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-}
-
-// Tipos para autenticação
 export interface AuthRequest {
   email: string;
   senha: string;
@@ -71,33 +9,167 @@ export interface AuthResponse {
   userId: number;
 }
 
-// Tipos para Filiais 
-export interface FilialRequest {
+export interface RegisterRequest {
   nome: string;
-  endereco: string;
-  token: string; 
+  email: string;
+  senha: string;
 }
 
-export interface FilialResponse {
+export interface BikeRequest {
+  plate: string; // placa
+  model: BikeModel;
+  status: AreaStatus;
+}
+
+export interface BikeResponse {
+  id: number;
+  plate: string;
+  model: BikeModel;
+  status: AreaStatus;
+  subsidiaryId?: number;
+  yardId?: number;
+  tagCode?: string;
+}
+
+export enum BikeModel {
+  CG_160 = 'CG_160',
+  FAZER_250 = 'FAZER_250',
+  CB_300 = 'CB_300',
+  NINJA_400 = 'NINJA_400',
+}
+
+export enum AreaStatus {
+  AVAILABLE = 'AVAILABLE',
+  IN_USE = 'IN_USE',
+  MAINTENANCE = 'MAINTENANCE',
+  UNAVAILABLE = 'UNAVAILABLE',
+}
+
+export interface YardRequest {
+  name: string;
+  address: string;
+  capacity: number;
+}
+
+export interface YardResponse {
   id: number;
   name: string;
-  endereco: string;
-  motos: MotoResponse[];
+  address: string;
+  capacity: number;
+  currentOccupancy?: number;
+  cameras?: CameraResponse[];
+  bikes?: BikeResponse[];
+}
+
+export interface YardMongoRequest {
+  yardId: number;
+  tagPositions: TagPosition[];
+}
+
+export interface YardMongoResponse {
+  yardId: number;
+  tagPositions: TagPosition[];
+  lastUpdated: string;
+}
+
+export interface TagPosition {
+  tagCode: string;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface CameraRequest {
+  name: string;
+  ipAddress: string;
+  port: number;
+  yardId: number;
+}
+
+export interface CameraResponse {
+  id: number;
+  name: string;
+  ipAddress: string;
+  port: number;
+  yardId: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'ERROR';
+}
+
+export interface ApriltagRequest {
+  code: string;
+  size: number;
+  description?: string;
+}
+
+export interface ApriltagResponse {
+  id: number;
+  code: string;
+  size: number;
+  description?: string;
+  linkedBikeId?: number;
+  linkedBikePlate?: string;
+}
+
+export interface ApriltagDetectionResponse {
+  detectedTags: DetectedTag[];
+  imageUrl?: string;
+  timestamp: string;
+}
+
+export interface DetectedTag {
+  tagCode: string;
+  confidence: number;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
+export interface SubsidiaryRequest {
+  name: string;
+  address: string;
+  phone?: string;
+}
+
+export interface SubsidiaryResponse {
+  id: number;
+  name: string;
+  address: string;
+  phone?: string;
+  yards?: YardResponse[];
+}
+
+export interface AreaRequest {
+  name: string;
+  type: string;
+  yardId: number;
+}
+
+export interface AreaResponse {
+  id: number;
+  name: string;
+  type: string;
+  yardId: number;
+  status: AreaStatus;
+}
+
+export interface ApiError {
+  message: string;
+  code: string;
+  details?: any;
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
 }
 
 export interface MotoRequest {
   placa: string;
   status: string;
   filialId: number;
-  userId: number; 
-  token: string; 
-}
-
-// Tipo simplificado para formulário (sem userId)
-export interface MotoFormRequest {
-  placa: string;
-  status: string;
-  filialId: number;
+  userId: number;
   token: string;
 }
 
@@ -110,36 +182,15 @@ export interface MotoResponse {
   userEmail?: string;
 }
 
-// Tipos para cadastro de usuário
-export interface RegisterRequest {
+export interface FilialRequest {
   nome: string;
-  email: string;
-  senha: string;
+  endereco: string;
+  token: string;
 }
 
-// Tipos de resposta de erro da API
-export interface ApiError {
-  message: string;
-  code: string;
-  details?: any;
+export interface FilialResponse {
+  id: number;
+  name: string;
+  endereco: string;
+  motos: MotoResponse[];
 }
-
-// Tipo genérico para respostas da API
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-}
-
-// Status disponíveis para motos
-export type MotoStatus = 'Disponível' | 'Em uso' | 'Manutenção' | 'Indisponível';
-
-// Constantes de status
-export const MOTO_STATUS: MotoStatus[] = [
-  'Disponível',
-  'Em uso', 
-  'Manutenção',
-  'Indisponível'
-];
-
-
