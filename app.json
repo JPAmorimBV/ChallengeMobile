@@ -4,10 +4,8 @@
     "slug": "nexus-tech-mottu",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#2196F3"
     },
@@ -15,9 +13,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#2196F3",
-          "sounds": ["./assets/notification-sound.wav"]
+          "color": "#2196F3"
         }
       ]
     ],
@@ -31,7 +27,6 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2196F3"
       },
       "package": "com.nexustech.mottu",
@@ -39,8 +34,7 @@
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE"
-      ],
-      "googleServicesFile": "./google-services.json"
+      ]
     },
     "extra": {
       "commitHash": "obter-via-script",
