@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "141936089249",
+    "project_id": "nexus-tech-mottu",
+    "storage_bucket": "nexus-tech-mottu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:141936089249:android:f9777d7923c5b4d52b38e0",
+        "android_client_info": {
+          "package_name": "com.nexustech.mottu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDACEdSFo3svl5DZuGd9sfl4aNC-xuu2Qg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

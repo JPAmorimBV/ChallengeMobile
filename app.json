@@ -12,9 +12,7 @@
     "plugins": [
       [
         "expo-notifications",
-        {
-          "color": "#2196F3"
-        }
+        { "color": "#2196F3" }
       ]
     ],
     "ios": {
@@ -22,7 +20,9 @@
       "bundleIdentifier": "com.nexustech.mottu",
       "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -30,16 +30,16 @@
         "backgroundColor": "#2196F3"
       },
       "package": "com.nexustech.mottu",
-      "versionCode": 1,
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "extra": {
       "commitHash": "obter-via-script",
       "eas": {
-        "projectId": "seu-project-id-aqui"
+        "projectId": "4511f5c7-7637-4623-92ed-883907535589"
       }
     }
   }
